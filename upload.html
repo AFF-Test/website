@@ -83,19 +83,11 @@
         target: Dashboard,
         showVideoSourceDropdown: true,
         showRecordingLength: true,
-        modes: ['video-audio']
+        modes: ['video-audio', 'video', 'audio']
       })
       .use(ImageEditor, { target: Dashboard })
       .use(RemoteSources, {
         companionUrl: 'https://api2.transloadit.com/companion',
-      })
-      .on('complete', ({ transloadit }) => {
-        // Due to `waitForEncoding: true` this is fired after encoding is done.
-        // Alternatively, set `waitForEncoding` to `false` and provide a `notify_url`
-        console.log(transloadit) // Array of Assembly Statuses
-        transloadit.forEach((assembly) => {
-          console.log(assembly.results) // Array of all encoding results
-        })
       })
       .on('error', (error) => {
         console.error(error)
@@ -107,10 +99,6 @@
     }
     document.getElementById('fullName').addEventListener('change', onInputChange)
     document.getElementById('emailAddress').addEventListener('change', onInputChange)
-    uppy.on('upload', (data) => {
-      console.log(data);
-      uppy.setMeta({ mymetadata: "hooraay" });
-    })
   </script>
 
 </head>

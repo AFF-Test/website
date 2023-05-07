@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Upload Video to AFF-Test</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- This pulls Uppy from our CDN -->
+  <!-- For smaller self-hosted bundles, install Uppy and plugins manually: -->
+  <!-- npm i --save @uppy/core @uppy/dashboard @uppy/remote-sources @uppy/transloadit ... -->
+  <link href="https://releases.transloadit.com/uppy/v3.2.2/uppy.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: black;
+      color: white;
+    }
+    label {
+      display: block;
+      font: 1rem 'Fira Sans', sans-serif;
+      margin: 0.4rem 0 0 0;
+    }
+    input {
+      border: 4px solid silver;
+    }
+    input,
+    label {
+      padding: 0.8rem;
+      width: 300px;
+    }
+    input:invalid {
+      border: 4px solid red;
+      border-radius: 0;
+    }
+    input:valid {
+      border: 4px solid green;
+      border-radius: 24px;
+    }
+  </style>
+
+  <script type="module">
+    import {
+      Uppy,
+      Dashboard,
+      ImageEditor,
+      RemoteSources,
+      Transloadit,
+      Webcam,
+      Audio,
+      Form
+    } from 'https://releases.transloadit.com/uppy/v3.2.2/uppy.min.mjs'
+    const uppy = new Uppy({
+      fields: ['fullName', 'emailAddress'],
+      restrictions: {
+        requiredMetaFields: ['fullName', 'emailAddress']
+      }
+    })
+      .use(Dashboard, {
+        inline: true,
+        target: "#uppy-dashboard",
+        showProgressDetails: true,
+        proudlyDisplayPoweredByUppy: true,
+        metaFields: [
+          { id: 'fullName', required: true, name: 'Full Name', placeholder: 'your name' },
+          { id: 'emailAddress', required: true, name: 'Email Address', placeholder: 'your email address' },
+        ]
+      })
+      .use(Transloadit, {
+        waitForEncoding: true,
+        alwaysRunAssembly: true,
+        params: {
+          // To avoid tampering use signatures:
+          // https://transloadit.com/docs/api/#authentication
+          auth: {
+            key: '2aa7f93ddcd847b287d24f3bf9ef0fcd',
+          },
+          template_id: 'b8fa08e6d3684ac7bcb0dd23e3f8434f',
+        },
+        fields: ['fullName', 'emailAddress']
+      })
+      .use(Webcam, {
+        target: Dashboard,
+        showVideoSourceDropdown: true,
+        showRecordingLength: true,
+        modes: ['video-audio']
+      })
+      .use(ImageEditor, { target: Dashboard })
+      .use(RemoteSources, {
+        companionUrl: 'https://api2.transloadit.com/companion',
+      })
+      .on('complete', ({ transloadit }) => {
+        // Due to `waitForEncoding: true` this is fired after encoding is done.
+        // Alternatively, set `waitForEncoding` to `false` and provide a `notify_url`
+        console.log(transloadit) // Array of Assembly Statuses
+        transloadit.forEach((assembly) => {
+          console.log(assembly.results) // Array of all encoding results
+        })
+      })
+      .on('error', (error) => {
+        console.error(error)
+      })
+    function onInputChange({ target }) {
+      const { name, value } = target
+      console.log(event)
+      uppy.setMeta({ [name]: value })
+    }
+    document.getElementById('fullName').addEventListener('change', onInputChange)
+    document.getElementById('emailAddress').addEventListener('change', onInputChange)
+    uppy.on('upload', (data) => {
+      console.log(data);
+      uppy.setMeta({ mymetadata: "hooraay" });
+    })
+  </script>
+
+</head>
+
+<body>
+  <h1>Upload Video to AFF-Test</h1>
+  <ol>
+    <li>Enter your name and email address.</li>
+    <li>Select a method for uploading your video.
+      <br>
+      <small>You can use your webcam or phone camera.</small>
+      <br>
+      <small>Keep video under 2 minutes.</small>
+      <br>
+      <small>Tell a joke, or a funny story - or tell us why you are AFF-Test.</small>
+    </li>
+    <li>An email confirmation will be sent to the email you provide.</li>
+    <li>AFF-Test will contact you by email with details for next steps.</li>
+  </ol>
+
+  <label for="fullName">Enter your name</label>
+  <input type="text" id="fullName" name="fullName" placeholder="Full Name" required />
+
+  <label for="emailAddress">Enter your email address</label>
+  <input type="email" id="emailAddress" name="emailAddress" placeholder="Contact Email" required />
+
+  <div id="uppy-dashboard"></div>
+
+</body>
+
+</html>
